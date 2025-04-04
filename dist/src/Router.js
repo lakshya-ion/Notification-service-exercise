@@ -56,7 +56,7 @@ var axios_1 = __importDefault(require("axios"));
 var app = (0, express_1.default)();
 var dbOperations = new DBOperations_1.default();
 app.use(express_1.default.json());
-app.post("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+app.post("/data", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var result, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -75,7 +75,7 @@ app.post("/", function (req, res) { return __awaiter(void 0, void 0, void 0, fun
         }
     });
 }); });
-app.get("/:u3Id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+app.get("/data/:u3Id", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var u3Id, userData, result, combinedData, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -99,37 +99,44 @@ app.get("/:u3Id", function (req, res) { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); });
-app.post("/create_match", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var payload, contentID_1, profileIDs;
+app.post("/matches", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var payload, contentID, profileIDs, _i, profileIDs_1, u3Id, userApiData, timezone, DbData, error_3;
     return __generator(this, function (_a) {
-        try {
-            payload = req.body;
-            contentID_1 = payload.contentId;
-            profileIDs = payload.profileIds;
-            profileIDs.forEach(function (u3Id) { return __awaiter(void 0, void 0, void 0, function () {
-                var userApiData, timezone, DbData, result;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, axios_1.default.get("http://localhost:3000/users/u3ID/".concat(u3Id))];
-                        case 1:
-                            userApiData = _a.sent();
-                            timezone = userApiData.data.timezone;
-                            return [4 /*yield*/, dbOperations.getData({ u3Id: u3Id })];
-                        case 2:
-                            DbData = _a.sent();
-                            result = dbOperations.addMatch({ contentID: contentID_1, timezone: timezone, DbData: DbData });
-                            res
-                                .status(201)
-                                .json({ message: "Matches inserted successfully", result: result });
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                payload = req.body;
+                contentID = payload.contentId;
+                profileIDs = payload.profileIds;
+                _i = 0, profileIDs_1 = profileIDs;
+                _a.label = 1;
+            case 1:
+                if (!(_i < profileIDs_1.length)) return [3 /*break*/, 6];
+                u3Id = profileIDs_1[_i];
+                return [4 /*yield*/, axios_1.default.get("http://localhost:3000/users/u3ID/".concat(u3Id))];
+            case 2:
+                userApiData = _a.sent();
+                timezone = userApiData.data.timezone;
+                return [4 /*yield*/, dbOperations.getData({ u3Id: u3Id })];
+            case 3:
+                DbData = _a.sent();
+                return [4 /*yield*/, dbOperations.saveMatch({
+                        contentID: contentID,
+                        timezone: timezone,
+                        DbData: DbData,
+                    })];
+            case 4:
+                _a.sent();
+                _a.label = 5;
+            case 5:
+                _i++;
+                return [3 /*break*/, 1];
+            case 6: return [2 /*return*/, res.status(201).json({ message: "Matches inserted successfully" })];
+            case 7:
+                error_3 = _a.sent();
+                return [2 /*return*/, res.status(500).json({ error: error_3.message })];
+            case 8: return [2 /*return*/];
         }
-        catch (error) {
-            res.status(404).json({ error: error.message });
-        }
-        return [2 /*return*/];
     });
 }); });
 app.listen(4500, function () {

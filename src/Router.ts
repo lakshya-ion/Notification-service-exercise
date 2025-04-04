@@ -7,7 +7,7 @@ const dbOperations = new DBOperations();
 
 app.use(express.json());
 
-app.post("/", async (req, res) => {
+app.post("/data", async (req, res) => {
   try {
     const result = await dbOperations.saveData(req.body);
     res.status(201).json({ message: "Data inserted successfully", result });
@@ -16,7 +16,7 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.get("/:u3Id", async (req, res) => {
+app.get("/data/:u3Id", async (req, res) => {
   try {
     const { u3Id } = req.params;
     const userData = await axios.get(
@@ -30,24 +30,29 @@ app.get("/:u3Id", async (req, res) => {
   }
 });
 
-app.post("/create_match", async (req, res) => {
+app.post("/matches", async (req, res) => {
   try {
     const payload = req.body;
     const contentID = payload.contentId;
     const profileIDs = payload.profileIds;
-    profileIDs.forEach(async (u3Id: string) => {
+
+    for (const u3Id of profileIDs) {
       const userApiData = await axios.get(
         `http://localhost:3000/users/u3ID/${u3Id}`
       );
       const timezone = userApiData.data.timezone;
       const DbData = await dbOperations.getData({ u3Id });
-      const result = dbOperations.addMatch({ contentID, timezone, DbData });
-      res
-        .status(201)
-        .json({ message: "Matches inserted successfully", result });
-    });
+
+      await dbOperations.saveMatch({
+        contentID,
+        timezone,
+        DbData,
+      });
+    }
+
+    return res.status(201).json({ message: "Matches inserted successfully" });
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

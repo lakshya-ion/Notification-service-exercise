@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var schemaValidator_1 = require("../src/schemaValidator");
 var mongodb_1 = require("mongodb");
 var DBOperations_1 = __importDefault(require("../src/DBOperations"));
+var convertSchedule_1 = require("../src/convertSchedule");
 jest.mock("mongodb", function () {
     return {
         MongoClient: jest.fn().mockImplementation(function () { return ({
@@ -58,6 +59,9 @@ jest.mock("mongodb", function () {
 });
 jest.mock("../src/schemaValidator", function () { return ({
     validateData: jest.fn().mockReturnValue(true),
+}); });
+jest.mock("../src/convertSchedule", function () { return ({
+    convertSchedule: jest.fn().mockReturnValue(["2025-03-31T12:00:00.000Z"]),
 }); });
 describe("DBOperations test suite", function () {
     var dbOperations;
@@ -157,6 +161,87 @@ describe("DBOperations test suite", function () {
                         return [4 /*yield*/, expect(dbOperations.getData({ u3ID: u3ID })).rejects.toThrow("No data found for the given u3Id")];
                     case 1:
                         _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    });
+    describe("saveMatch Tests", function () {
+        test("saveMatch should save the match successfully", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            contentID: "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
+                            profileIds: ["60dd16219914b6002c47cb9b", "60de734bd410ae002cfce206"],
+                            timezone: "America/New_York",
+                            DbData: {
+                                u3Id: "60dd16219914b6002c47cb9b",
+                                type: "Digest",
+                                schedule: {
+                                    monday: ["08:00"],
+                                    friday: ["08:00"],
+                                },
+                            },
+                        };
+                        return [4 /*yield*/, dbOperations.saveMatch(mockData)];
+                    case 1:
+                        result = _a.sent();
+                        expect(mongodb_1.MongoClient).toHaveBeenCalled();
+                        expect(convertSchedule_1.convertSchedule).toHaveBeenCalledWith(mockData.DbData.schedule, mockData.timezone);
+                        expect(result).toEqual({ insertedId: "mockId" });
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        test("saveMatch should throw an error if the record already exists", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                            contentID: "content123",
+                            timezone: "America/Los_Angeles",
+                            DbData: {
+                                u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                                type: "Digest",
+                                schedule: {
+                                    monday: ["08:00"],
+                                    friday: ["08:00"],
+                                },
+                            },
+                        };
+                        jest
+                            .spyOn(dbOperations.client.db().collection(), "findOne")
+                            .mockResolvedValue({ u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529" });
+                        return [4 /*yield*/, expect(dbOperations.saveMatch(mockData)).rejects.toThrow("The data entered already exists")];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        test("saveMatch should handle non-Digest types correctly", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                            contentID: "content456",
+                            timezone: "Asia/Tokyo",
+                            DbData: {
+                                u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                                type: "Instant",
+                            },
+                        };
+                        return [4 /*yield*/, dbOperations.saveMatch(mockData)];
+                    case 1:
+                        result = _a.sent();
+                        expect(mongodb_1.MongoClient).toHaveBeenCalled();
+                        expect(result).toEqual({ insertedId: "mockId" });
                         return [2 /*return*/];
                 }
             });

@@ -58,7 +58,7 @@ var Router_1 = __importDefault(require("../src/Router"));
 var app = (0, express_1.default)();
 app.use("/", Router_1.default);
 describe("Unit Tests for data routes", function () {
-    describe("Get /", function () {
+    describe("Get /data", function () {
         test("GET /:u3Id should return 200 and call getData", function () { return __awaiter(void 0, void 0, void 0, function () {
             var u3Id, res;
             return __generator(this, function (_a) {
@@ -84,7 +84,7 @@ describe("Unit Tests for data routes", function () {
                             },
                         });
                         u3Id = "76DB413D-6B4F-4F88-9821-C12E306D7BD3";
-                        return [4 /*yield*/, (0, supertest_1.default)(app).get("/".concat(u3Id))];
+                        return [4 /*yield*/, (0, supertest_1.default)(app).get("/data/".concat(u3Id))];
                     case 1:
                         res = _a.sent();
                         expect(res.status).toBe(200);
@@ -117,7 +117,7 @@ describe("Unit Tests for data routes", function () {
                             .mockRejectedValue(new Error("No data found for the given u3Id"));
                         jest.spyOn(axios_1.default, "get").mockResolvedValue("");
                         u3Id = "76DB413D-6B4F-4F88-9821-C12E306D7BD3";
-                        return [4 /*yield*/, (0, supertest_1.default)(app).get("/".concat(u3Id))];
+                        return [4 /*yield*/, (0, supertest_1.default)(app).get("/data/".concat(u3Id))];
                     case 1:
                         res = _a.sent();
                         expect(res.status).toBe(404);
@@ -127,66 +127,161 @@ describe("Unit Tests for data routes", function () {
             });
         }); });
     });
-    describe("Unit Tests for data routes", function () {
-        describe("POST /", function () {
-            test("should return 201 and call saveData", function () { return __awaiter(void 0, void 0, void 0, function () {
-                var mockData, mockResponse, res;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            mockData = {
-                                profileName: "Energy M&A",
-                                u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
-                                type: "Digest",
-                                isActive: true,
-                                schedule: {
-                                    monday: ["08:00"],
-                                    friday: ["08:00"],
-                                },
-                            };
-                            mockResponse = __assign({ id: "123" }, mockData);
-                            jest
-                                .spyOn(DBOperations_1.default.prototype, "saveData")
-                                .mockResolvedValue(mockResponse);
-                            return [4 /*yield*/, (0, supertest_1.default)(app).post("/").send(mockData)];
-                        case 1:
-                            res = _a.sent();
-                            expect(res.status).toBe(201);
-                            expect(res.body).toEqual({
-                                message: "Data inserted successfully",
-                                result: mockResponse,
-                            });
-                            expect(DBOperations_1.default.prototype.saveData).toHaveBeenCalledWith(mockData);
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            test("should return 400 if saveData throws an error", function () { return __awaiter(void 0, void 0, void 0, function () {
-                var mockData, res;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            mockData = {
-                                profileName: "Energy M&A",
-                                type: "Digest",
-                                isActive: true,
-                                schedule: {
-                                    monday: ["08:00"],
-                                    friday: ["08:00"],
-                                },
-                            };
-                            jest
-                                .spyOn(DBOperations_1.default.prototype, "saveData")
-                                .mockRejectedValue(new Error("Error in validating data"));
-                            return [4 /*yield*/, (0, supertest_1.default)(app).post("/").send(mockData)];
-                        case 1:
-                            res = _a.sent();
-                            expect(res.status).toBe(400);
-                            expect(res.body).toEqual({ error: "Error in validating data" });
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-        });
+    describe("POST /data", function () {
+        test("should return 201 and call saveData", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData, mockResponse, res;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            profileName: "Energy M&A",
+                            u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                            type: "Digest",
+                            isActive: true,
+                            schedule: {
+                                monday: ["08:00"],
+                                friday: ["08:00"],
+                            },
+                        };
+                        mockResponse = __assign({ id: "123" }, mockData);
+                        jest
+                            .spyOn(DBOperations_1.default.prototype, "saveData")
+                            .mockResolvedValue(mockResponse);
+                        return [4 /*yield*/, (0, supertest_1.default)(app).post("/data").send(mockData)];
+                    case 1:
+                        res = _a.sent();
+                        expect(res.status).toBe(201);
+                        expect(res.body).toEqual({
+                            message: "Data inserted successfully",
+                            result: mockResponse,
+                        });
+                        expect(DBOperations_1.default.prototype.saveData).toHaveBeenCalledWith(mockData);
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        test("should return 400 if saveData throws an error", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData, res;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            profileName: "Energy M&A",
+                            type: "Digest",
+                            isActive: true,
+                            schedule: {
+                                monday: ["08:00"],
+                                friday: ["08:00"],
+                            },
+                        };
+                        jest
+                            .spyOn(DBOperations_1.default.prototype, "saveData")
+                            .mockRejectedValue(new Error("Error in validating data"));
+                        return [4 /*yield*/, (0, supertest_1.default)(app).post("/data").send(mockData)];
+                    case 1:
+                        res = _a.sent();
+                        expect(res.status).toBe(400);
+                        expect(res.body).toEqual({ error: "Error in validating data" });
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    });
+    describe("POST /matches", function () {
+        test("should return 201 and call saveMatch", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData, mockResponse, mockDataVal, res;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            contentId: "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
+                            profileIds: ["60dd16219914b6002c47cb9b", "60de734bd410ae002cfce206"],
+                        };
+                        mockResponse = {};
+                        mockDataVal = {
+                            profileName: "Energy M&A",
+                            u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                            type: "Digest",
+                            isActive: true,
+                            schedule: {
+                                monday: ["08:00"],
+                                friday: ["08:00"],
+                            },
+                        };
+                        jest
+                            .spyOn(DBOperations_1.default.prototype, "getData")
+                            .mockResolvedValue(mockDataVal);
+                        jest
+                            .spyOn(DBOperations_1.default.prototype, "saveMatch")
+                            .mockResolvedValue(mockResponse);
+                        jest.spyOn(axios_1.default, "get").mockResolvedValue({
+                            data: {
+                                u3Id: "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
+                                firstName: "Jignesh",
+                                lastName: "Patel",
+                                email: "jignesh.patel@iongroup.com",
+                                timezone: "Asia/Shanghai",
+                            },
+                        });
+                        return [4 /*yield*/, (0, supertest_1.default)(app).post("/matches").send(mockData)];
+                    case 1:
+                        res = _a.sent();
+                        expect(res.status).toBe(201);
+                        expect(res.body).toEqual({
+                            message: "Matches inserted successfully",
+                        });
+                        expect(DBOperations_1.default.prototype.saveMatch).toHaveBeenCalledWith({
+                            DbData: mockDataVal,
+                            contentID: mockData.contentId,
+                            timezone: "Asia/Shanghai",
+                        });
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        test("should return 500 when saveMatch fails", function () { return __awaiter(void 0, void 0, void 0, function () {
+            var mockData, mockDataVal, res;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        mockData = {
+                            contentId: "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
+                            profileIds: ["60dd16219914b6002c47cb9b", "60de734bd410ae002cfce206"],
+                        };
+                        mockDataVal = {
+                            profileName: "Energy M&A",
+                            u3Id: "402A3266-CD0B-4F3E-8193-FE83AE880529",
+                            type: "Digest",
+                            isActive: true,
+                            schedule: {
+                                monday: ["08:00"],
+                                friday: ["08:00"],
+                            },
+                        };
+                        jest
+                            .spyOn(DBOperations_1.default.prototype, "getData")
+                            .mockResolvedValue(mockDataVal);
+                        jest
+                            .spyOn(DBOperations_1.default.prototype, "saveMatch")
+                            .mockRejectedValue(new Error("Failed to insert match"));
+                        jest.spyOn(axios_1.default, "get").mockResolvedValue({
+                            data: {
+                                u3Id: "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
+                                firstName: "Jignesh",
+                                lastName: "Patel",
+                                email: "jignesh.patel@iongroup.com",
+                                timezone: "Asia/Shanghai",
+                            },
+                        });
+                        return [4 /*yield*/, (0, supertest_1.default)(app).post("/matches").send(mockData)];
+                    case 1:
+                        res = _a.sent();
+                        expect(res.status).toBe(500);
+                        expect(res.body).toEqual({ error: "Failed to insert match" });
+                        expect(DBOperations_1.default.prototype.saveMatch).toHaveBeenCalled();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
     });
 });

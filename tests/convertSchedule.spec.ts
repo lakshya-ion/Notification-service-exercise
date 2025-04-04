@@ -1,17 +1,14 @@
 import { convertSchedule } from "../src/convertSchedule";
 
 describe("convertSchedule function", () => {
-  test("should correctly convert schedule to UTC in ISO format", () => {
+  test("should correctly convert schedule to America/New_York time", () => {
     const schedule = {
       monday: ["08:00"],
       friday: ["08:00"],
     };
-    const timezone = "America/New_York";
+    const timezone = "America/Los_Angeles";
 
-    const expectedOutput = [
-      "2025-03-31T12:00:00.000Z", // Monday 08:00 EDT → 12:00 UTC
-      "2025-04-04T12:00:00.000Z", // Friday 08:00 EDT → 12:00 UTC
-    ];
+    const expectedOutput = ["2025-03-31 11:00 EDT", "2025-04-04 11:00 EDT"];
 
     const result = convertSchedule(schedule, timezone);
 
@@ -28,10 +25,7 @@ describe("convertSchedule function", () => {
     };
     const timezone = "Asia/Tokyo";
 
-    const expectedOutput = [
-      "2025-04-01T21:00:00.000Z", // Wednesday 06:00 JST → 21:00 UTC (Previous Day)
-      "2025-04-02T09:00:00.000Z", // Wednesday 18:00 JST → 09:00 UTC
-    ];
+    const expectedOutput = ["2025-04-01 17:00 EDT", "2025-04-02 05:00 EDT"];
 
     const result = convertSchedule(schedule, timezone);
 

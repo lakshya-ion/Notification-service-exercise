@@ -16,7 +16,10 @@ function convertSchedule(schedule, timezone) {
             if (!localTime.isValid()) {
                 throw new Error("Invalid date/time format for ".concat(day, " ").concat(time));
             }
-            result.push(localTime.utc().toISOString());
+            var nyTime = localTime
+                .tz("America/New_York")
+                .format("YYYY-MM-DD HH:mm z");
+            result.push(nyTime);
         });
     });
     return result;

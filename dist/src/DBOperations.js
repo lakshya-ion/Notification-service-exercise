@@ -173,7 +173,7 @@ var DBOperations = /** @class */ (function () {
             });
         });
     };
-    DBOperations.prototype.addMatch = function (data) {
+    DBOperations.prototype.saveMatch = function (data) {
         return __awaiter(this, void 0, void 0, function () {
             var db, collection, existingData, contentID, dbData, timezone, u3ID, createTime, deliveryTime, scheduleTimes, insData, inserted, error_4;
             return __generator(this, function (_a) {
