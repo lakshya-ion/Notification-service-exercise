@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "unittest": "tsc && jest ./dist/tests/unitTest",
-    "integrationtest": "tsc && jest ./dist/tests/integrationTest/DBOperations"
+    "integrationtest": "tsc && jest ./dist/tests/integrationTest",
+    "acceptancetest": "tsc && jest ./dist/acceptance"
   },
   "author": "",
   "license": "ISC",

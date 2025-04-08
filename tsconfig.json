@@ -3,5 +3,5 @@
     "outDir": "./dist",
     "esModuleInterop": true
   },
-  "include": ["src", "tests", "types"]
+  "include": ["src", "tests", "types", "acceptance"]
 }
