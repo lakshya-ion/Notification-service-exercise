@@ -51,7 +51,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_1 = require("mongodb");
-var schemaValidator_1 = require("./schemaValidator");
 var moment_timezone_1 = __importDefault(require("moment-timezone"));
 var convertSchedule_1 = require("./convertSchedule");
 var URL = "mongodb://localhost:27017";
@@ -117,9 +116,6 @@ var DBOperations = /** @class */ (function () {
                         _a.sent();
                         _a.label = 2;
                     case 2:
-                        if (!(0, schemaValidator_1.validateData)(data)) {
-                            throw new Error("Error in validating the data");
-                        }
                         db = this.client.db(DB_NAME);
                         collection = db.collection(COLLECTION_NAME);
                         return [4 /*yield*/, collection.findOne({ u3Id: data.u3Id })];

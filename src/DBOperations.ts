@@ -1,5 +1,4 @@
 import { MongoClient } from "mongodb";
-import { validateData } from "./schemaValidator";
 import moment from "moment-timezone";
 import { convertSchedule } from "./convertSchedule";
 const URL = "mongodb://localhost:27017";
@@ -37,9 +36,6 @@ class DBOperations {
         await this.connectDB();
       }
 
-      if (!validateData(data)) {
-        throw new Error("Error in validating the data");
-      }
       const db = this.client.db(DB_NAME);
       const collection = db.collection(COLLECTION_NAME);
 

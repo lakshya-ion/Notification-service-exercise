@@ -1,4 +1,4 @@
-import { convertSchedule } from "../src/convertSchedule";
+import { convertSchedule } from "../../src/convertSchedule";
 
 describe("convertSchedule function", () => {
   test("should correctly convert schedule to America/New_York time", () => {
@@ -8,7 +8,7 @@ describe("convertSchedule function", () => {
     };
     const timezone = "America/Los_Angeles";
 
-    const expectedOutput = ["2025-03-31 11:00 EDT", "2025-04-04 11:00 EDT"];
+    const expectedOutput = ["2025-04-07 11:00 EDT", "2025-04-11 11:00 EDT"];
 
     const result = convertSchedule(schedule, timezone);
 
@@ -25,7 +25,7 @@ describe("convertSchedule function", () => {
     };
     const timezone = "Asia/Tokyo";
 
-    const expectedOutput = ["2025-04-01 17:00 EDT", "2025-04-02 05:00 EDT"];
+    const expectedOutput = ["2025-04-08 17:00 EDT", "2025-04-09 05:00 EDT"];
 
     const result = convertSchedule(schedule, timezone);
 

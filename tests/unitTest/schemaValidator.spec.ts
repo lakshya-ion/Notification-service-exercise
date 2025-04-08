@@ -1,4 +1,4 @@
-import { validateData } from "../src/schemaValidator";
+import { validateData } from "../../src/schemaValidator";
 
 describe("Schema Validation", () => {
   test("Valid Digest Profile with Schedule", () => {

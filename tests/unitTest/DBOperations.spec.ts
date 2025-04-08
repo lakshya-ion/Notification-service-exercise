@@ -1,7 +1,6 @@
-import { validateData } from "../src/schemaValidator";
 import { MongoClient } from "mongodb";
-import DBOperations from "../src/DBOperations";
-import { convertSchedule } from "../src/convertSchedule";
+import DBOperations from "../../src/DBOperations";
+import { convertSchedule } from "../../src/convertSchedule";
 
 jest.mock("mongodb", () => {
   return {
@@ -17,11 +16,8 @@ jest.mock("mongodb", () => {
     })),
   };
 });
-jest.mock("../src/schemaValidator", () => ({
-  validateData: jest.fn().mockReturnValue(true),
-}));
 
-jest.mock("../src/convertSchedule", () => ({
+jest.mock("../../src/convertSchedule", () => ({
   convertSchedule: jest.fn().mockReturnValue(["2025-03-31T12:00:00.000Z"]),
 }));
 
@@ -51,7 +47,6 @@ describe("DBOperations test suite", () => {
 
       const result = await dbOperations.saveData(mockData);
 
-      expect(validateData).toHaveBeenCalledWith(mockData);
       expect(MongoClient).toHaveBeenCalled();
       expect(result).toEqual({ insertedId: "mockId" });
     });
