@@ -91,13 +91,11 @@ Add a new match record to the `matches` collection.
 **Request Example:**
 
 ```json
-{
-  "u3Id": "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
-  "matchedItemId": "12345",
-  "matchedAt": "2025-04-09T08:30:00.000Z",
-  "metadata": {
-    "source": "MarketWatch"
-  }
+ {
+    "contentId": "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
+    "profileIds": [
+        "76DB413D-6B4F-4F88-9821-C12E306D7BD3"
+    ]
 }
 ```
 
