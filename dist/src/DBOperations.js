@@ -61,9 +61,9 @@ var DBOperations = /** @class */ (function () {
     function DBOperations() {
         this.client = null;
     }
-    DBOperations.prototype.connectDB = function () {
+    DBOperations.prototype.connectDB = function (mongoUrl) {
         return __awaiter(this, void 0, void 0, function () {
-            var error_1;
+            var url, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -71,11 +71,12 @@ var DBOperations = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        this.client = new mongodb_1.MongoClient(URL);
+                        url = mongoUrl || URL;
+                        this.client = new mongodb_1.MongoClient(url);
                         return [4 /*yield*/, this.client.connect()];
                     case 2:
                         _a.sent();
-                        console.log("Connected to '".concat(DB_NAME, "' database."));
+                        console.log("Connected to mongoClient");
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();

@@ -1,30 +1,12 @@
 import request from "supertest";
 import express from "express";
 import router from "../src/Routes";
-import axios from "axios";
-import DBOperations from "../src/DBOperations";
-
+import { MongoClient } from "mongodb";
 const app = express();
 app.use(express.json());
-app.use("/", router); //now the mock app will be using router as the middleware
+app.use("/", router);
 
-let mockFindOne = jest.fn().mockResolvedValue(null);
-jest.mock("mongodb", () => {
-  //creating mock for the MongoDb
-  return {
-    MongoClient: jest.fn().mockImplementation(() => ({
-      connect: jest.fn().mockResolvedValue(true),
-      close: jest.fn().mockResolvedValue(true),
-      db: jest.fn().mockReturnValue({
-        collection: jest.fn().mockReturnValue({
-          insertOne: jest.fn().mockResolvedValue({ insertedId: "mockId" }),
-          findOne: mockFindOne,
-        }),
-      }),
-    })),
-  };
-});
-const mockProfileData = {
+const testProfileData = {
   profileName: "Energy M&A",
   u3Id: "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
   type: "Digest",
@@ -34,7 +16,7 @@ const mockProfileData = {
     friday: ["08:00"],
   },
 };
-const mockUserDetails = {
+const testUserDetails = {
   u3Id: "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
   firstName: "Jignesh",
   lastName: "Patel",
@@ -42,128 +24,47 @@ const mockUserDetails = {
   timezone: "Asia/Shanghai",
 };
 
-describe("Routes test suite", () => {
-  let dbOperations;
-  beforeEach(() => {
-    dbOperations = new DBOperations();
-    dbOperations.connectDB();
+const testMatchData = {
+  contentId:
+    "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
+  profileIds: ["76DB413D-6B4F-4F88-9821-C12E306D7BD3"],
+};
+describe("acceptance tests suite", () => {
+  afterAll(async () => {
+    let client = new MongoClient("mongodb://localhost:27017");
+    await client.connect();
+    const testColl = client.db("growthteam").collection("test");
+    const matchColl = client.db("growthteam").collection("matches");
+    testColl.deleteMany({ u3Id: testUserDetails.u3Id });
+    matchColl.deleteMany({ profileId: testUserDetails.u3Id });
+    // to clear the data, we add to the real db
   });
-  afterEach(() => {
-    jest.restoreAllMocks();
+  test("POST/notification-profiles should POST the data correctly to the db", async () => {
+    const res = await request(app)
+      .post("/notification-profiles")
+      .send(testProfileData);
+    expect(res.statusCode).toBe(201);
   });
-
-  describe("GET/ ", () => {
-    test("Should return success on getting data", async () => {
-      mockFindOne.mockResolvedValueOnce(mockProfileData);
-      jest.spyOn(axios, "get").mockResolvedValue({ data: mockUserDetails });
-      const res = await request(app).get(
-        `/notification-profiles/${mockProfileData.u3Id}`
-      );
-      //user-api is mocked and the getData function will be called
-      //hence the findone should return something in mongo
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual({ ...mockUserDetails, ...mockProfileData });
-    });
-    test("should return error if the data does not exist in the db", async () => {
-      jest.spyOn(axios, "get").mockResolvedValue({ data: mockUserDetails });
-      const res = await request(app).get(
-        `/notification-profiles/${mockProfileData.u3Id}`
-      );
-      expect(res.statusCode).toBe(404);
-      expect(res.body).toEqual({ error: "User data not found" });
-    });
-    test("should return error if the user api is not able to give correct data", async () => {
-      jest.spyOn(axios, "get").mockRejectedValue(new Error("User API failed"));
-
-      const res = await request(app).get(
-        `/notification-profiles/${mockProfileData.u3Id}`
-      );
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toEqual({
-        error:
-          "Failed to fetch user data for u3Id: 76DB413D-6B4F-4F88-9821-C12E306D7BD3",
-      });
+  test("POST/notification-profiles show error if we try to POST the duplicate data to the db", async () => {
+    const res = await request(app)
+      .post("/notification-profiles")
+      .send(testProfileData);
+    expect(res.statusCode).toBe(409);
+  });
+  test(" GET/notification-profiles Should return success to the user, on fetching the user data", async () => {
+    const res = await request(app).get(
+      `/notification-profiles/${testProfileData.u3Id}`
+    );
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      ...testUserDetails,
+      ...testProfileData,
     });
   });
-  describe("POST/", () => {
-    test("should return success on saving data correctly", async () => {
-      const res = await request(app)
-        .post("/notification-profiles")
-        .send(mockProfileData);
-      expect(res.statusCode).toBe(201);
-      expect(res.body.message).toEqual("Data inserted successfully");
-    });
-    test("should return failure with status 409 if data already exists", async () => {
-      mockFindOne.mockResolvedValueOnce({ user: "lakshya", mentor: "ashwini" });
-      const res = await request(app)
-        .post("/notification-profiles")
-        .send(mockProfileData);
-      expect(res.statusCode).toBe(409);
-      expect(res.body.error).toEqual("Data already exists");
-    });
-
-    test("should return 201 when match is inserted successfully", async () => {
-      mockFindOne.mockResolvedValueOnce(mockProfileData);
-      jest
-        .spyOn(axios, "get")
-        .mockResolvedValueOnce({ data: { timezone: "Asia/Shanghai" } });
-
-      const res = await request(app)
-        .post("/notification-matches")
-        .send({
-          contentId: "content-123",
-          profileIds: [mockProfileData.u3Id],
-        });
-
-      expect(res.statusCode).toBe(201);
-      expect(res.body.message).toBe("Matches inserted successfully");
-    });
-
-    test("should return 400 when profileIds is empty", async () => {
-      const res = await request(app).post("/notification-matches").send({
-        contentId: "content-123",
-        profileIds: [],
-      });
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body.error).toBe("Invalid request payload");
-    });
-
-    test("should return 502 when user API fails", async () => {
-      jest
-        .spyOn(axios, "get")
-        .mockRejectedValueOnce(new Error("User api failure"));
-
-      const res = await request(app)
-        .post("/notification-matches")
-        .send({
-          contentId: "content-123",
-          profileIds: [mockProfileData.u3Id],
-        });
-
-      expect(res.statusCode).toBe(502);
-      expect(res.body.error).toBe(
-        "Failed to fetch user data for u3Id: 76DB413D-6B4F-4F88-9821-C12E306D7BD3"
-      );
-    });
-
-    test("should return 404 when no profile data is found", async () => {
-      jest
-        .spyOn(axios, "get")
-        .mockResolvedValueOnce({ data: { timezone: "Asia/Shanghai" } });
-
-      const res = await request(app)
-        .post("/notification-matches")
-        .send({
-          contentId: "content-123",
-          profileIds: [mockProfileData.u3Id],
-        });
-
-      expect(res.statusCode).toBe(404);
-      expect(res.body.error).toBe(
-        `No profile data found for u3Id: ${mockProfileData.u3Id}`
-      );
-    });
+  test("POST/ notification-matches should post appropriately in the db", async () => {
+    const res = await request(app)
+      .post("/notification-matches")
+      .send(testMatchData);
+    expect(res.statusCode).toBe(201);
   });
 });

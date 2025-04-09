@@ -1,69 +1,111 @@
 import DBOperations from "../../src/DBOperations";
-import { MongoClient } from "mongodb";
 import { convertSchedule } from "../../src/convertSchedule";
+import { MongoClient } from "mongodb";
 
-let mockInsertOne = jest.fn().mockResolvedValue({ insertedId: "mockId" });
-let mockFindOne = jest.fn().mockResolvedValue(null);
+const mongoUrl = "mongodb://localhost:27010";
+const testDbName = "growthteam";
+const testCollection = "test";
+const matchesCollection = "matches";
 
-jest.mock("mongodb", () => ({
-  MongoClient: jest.fn().mockImplementation(() => ({
-    connect: jest.fn().mockResolvedValue(true),
-    close: jest.fn().mockResolvedValue(true),
-    db: jest.fn().mockReturnValue({
-      collection: jest.fn().mockReturnValue({
-        insertOne: mockInsertOne,
-        findOne: mockFindOne,
-      }),
-    }),
-  })),
-}));
-
-const mockData = {
-  contentID:
-    "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
-  profileIds: ["60dd16219914b6002c47cb9b", "60de734bd410ae002cfce206"],
-  timezone: "America/New_York",
-  DbData: {
-    u3Id: "60dd16219914b6002c47cb9b",
-    type: "Digest",
-    schedule: {
-      monday: ["08:00"],
-      friday: ["08:00"],
-    },
+const mockProfileData = {
+  profileName: "Energy M&A",
+  u3Id: "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
+  type: "Digest",
+  isActive: true,
+  schedule: {
+    monday: ["08:00"],
+    friday: ["08:00"],
   },
 };
 
-describe("DBOperations integration: saveMatch and convertSchedule", () => {
-  let dbOperations;
+const mockUserDetails = {
+  u3Id: "76DB413D-6B4F-4F88-9821-C12E306D7BD3",
+  firstName: "Jignesh",
+  lastName: "Patel",
+  email: "jignesh.patel@iongroup.com",
+  timezone: "Asia/Shanghai",
+};
 
-  beforeEach(() => {
+const matchPayload = {
+  contentID:
+    "https://notifications-content-store.mmgapi.net/content/intel-prime-3027806",
+  profileIds: ["76DB413D-6B4F-4F88-9821-C12E306D7BD3"],
+  timezone: mockUserDetails.timezone,
+  DbData: {
+    u3Id: mockProfileData.u3Id,
+    type: mockProfileData.type,
+    schedule: mockProfileData.schedule,
+  },
+};
+
+describe("DBOperations Integration Tests", () => {
+  let dbOperations: DBOperations;
+  let mongoClient: MongoClient;
+
+  beforeAll(async () => {
     dbOperations = new DBOperations();
-    dbOperations.connectDB();
+    await dbOperations.connectDB(mongoUrl);
+    mongoClient = new MongoClient(mongoUrl);
+    await mongoClient.connect();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterAll(async () => {
+    const db = mongoClient.db(testDbName);
+    await db.collection(testCollection).deleteMany({});
+    await db.collection(matchesCollection).deleteMany({});
+    await mongoClient.close();
+    await dbOperations.closeConnection();
   });
 
-  test("saveMatch should store and return correct deliveryTime from convertSchedule", async () => {
-    const expectedDeliveryTime = convertSchedule(
-      mockData.DbData.schedule,
-      mockData.timezone
-    )[0];
+  describe("saveData", () => {
+    test("should save profile data successfully", async () => {
+      const result = await dbOperations.saveData(mockProfileData);
+      expect(result.insertedId).toBeDefined();
+    });
 
-    const result = await dbOperations.saveMatch(mockData);
+    test("should throw error if data already exists", async () => {
+      await expect(dbOperations.saveData(mockProfileData)).rejects.toThrow(
+        "The data entered already exists"
+      );
+    });
+  });
 
-    expect(mockInsertOne).toHaveBeenCalledWith(
-      expect.objectContaining({
-        profileId: mockData.DbData.u3Id,
-        contentID: mockData.contentID,
-        deliveryTime: expectedDeliveryTime,
-      })
-    );
+  describe("getData", () => {
+    test("should retrieve the inserted profile data", async () => {
+      const result = await dbOperations.getData({ u3Id: mockProfileData.u3Id });
+      expect(result.profileName).toBe(mockProfileData.profileName);
+      expect(result.type).toBe(mockProfileData.type);
+    });
 
-    const insertedData = mockInsertOne.mock.calls[0][0]; //this will fetch the value from first mock, and the first value of it
-    expect(insertedData.deliveryTime).toBe(expectedDeliveryTime);
+    test("should throw error for non-existent u3Id", async () => {
+      await expect(
+        dbOperations.getData({ u3Id: "non-existent-id" })
+      ).rejects.toThrow("No data found for the given u3Id");
+    });
+  });
 
-    expect(result.insertedId).toBe("mockId");
+  describe("saveMatch", () => {
+    test("should save a match with correct deliveryTime", async () => {
+      const expectedDeliveryTime = convertSchedule(
+        mockProfileData.schedule,
+        mockUserDetails.timezone
+      )[0];
+
+      const result = await dbOperations.saveMatch(matchPayload);
+      expect(result.insertedId).toBeDefined();
+
+      const db = mongoClient.db(testDbName);
+      const inserted = await db
+        .collection(matchesCollection)
+        .findOne({ profileId: mockProfileData.u3Id });
+
+      expect(inserted.deliveryTime).toBe(expectedDeliveryTime);
+    });
+
+    test("should throw error if match already exists", async () => {
+      await expect(dbOperations.saveMatch(matchPayload)).rejects.toThrow(
+        "The data entered already exists"
+      );
+    });
   });
 });

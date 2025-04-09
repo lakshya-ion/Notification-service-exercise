@@ -9,12 +9,13 @@ const COLLECTION_NAME_MATCH = "matches";
 class DBOperations {
   client = null;
 
-  async connectDB() {
+  async connectDB(mongoUrl?: string) {
     if (!this.client) {
       try {
-        this.client = new MongoClient(URL);
+        const url = mongoUrl || URL;
+        this.client = new MongoClient(url);
         await this.client.connect();
-        console.log(`Connected to '${DB_NAME}' database.`);
+        console.log(`Connected to mongoClient`);
       } catch (error) {
         // console.error("Database connection error:", error);
         throw new Error("Database connection failed");
