@@ -84,7 +84,10 @@ describe("Routes test suite", () => {
         .send(mockData);
 
       expect(res.statusCode).toBe(400);
-      expect(res.body.error).toBe("Invalid data format");
+      expect(res.body.message).toBe("Invalid data format");
+      expect(res.body.errors).toBe(
+        "data must have required property 'profileName', data must have required property 'isActive'"
+      );
     });
   });
   describe("Checking integration with DBOperations-GET/", () => {

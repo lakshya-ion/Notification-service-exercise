@@ -24,7 +24,11 @@ app.post("/notification-profiles", async (req, res) => {
     try {
       validateData(req.body);
     } catch (error) {
-      return res.status(400).json({ error: "Invalid data format" });
+      console.log(error);
+      return res.status(400).json({
+        message: "Invalid data format",
+        errors: error.message,
+      });
     }
 
     const result = await dbOperations.saveData(req.body);
