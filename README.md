@@ -106,7 +106,7 @@ Add a new match record to the `matches` collection.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/notification-registration-service.git
+git clone https://github.com/lakshya-ion/Notification-service-exercise.git
 cd notification-registration-service
 ```
 
